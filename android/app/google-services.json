@@ -1,0 +1,54 @@
+{
+  "project_info": {
+    "project_number": "818856912556",
+    "project_id": "mad-lab-19072",
+    "storage_bucket": "mad-lab-19072.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:818856912556:android:8d01dd517d665da6a9e109",
+        "android_client_info": {
+          "package_name": "com.example.pwdmgr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "818856912556-b5qqbtcghundthvml10s5onmhu3t65au.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.pwdmgr",
+            "certificate_hash": "f87bfcc192e982e2c94e86c8039c33131074a2b6"
+          }
+        },
+        {
+          "client_id": "818856912556-s1aus6ojkqb3qpga2tjct56tul092pc2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCdeMQhg32VnIBAjkTFz51lEGOrG7xKoOc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "818856912556-s1aus6ojkqb3qpga2tjct56tul092pc2.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "818856912556-g0dfrn7cqdbjb2p674e6tdt5n0d99q5o.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.pwdmgr"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

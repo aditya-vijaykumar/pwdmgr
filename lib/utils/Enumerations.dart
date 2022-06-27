@@ -1,0 +1,1 @@
+enum NavBar { vault, settings }
