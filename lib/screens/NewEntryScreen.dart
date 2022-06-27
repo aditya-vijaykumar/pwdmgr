@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:provider/provider.dart';
+import 'package:pwdmgr/providers/MasterPasswordProvider.dart';
 import 'package:pwdmgr/utils/SizeConfig.dart';
 import 'package:pwdmgr/utils/Styles.dart';
 
@@ -15,14 +17,22 @@ class NewEntryScreen extends StatefulWidget {
 
 class _NewEntryScreenState extends State<NewEntryScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _ageController = TextEditingController();
   bool _isLoading = false;
+  final _titleController = TextEditingController();
+  final _usernameController = TextEditingController();
+  final _urlController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _passwordConfirmController = TextEditingController();
 
-  String _userEmail = '';
-  String _userName = '';
-  late int _userAge;
+  bool _passwordVisible = true;
+  bool _passwordConfirmVisible = true;
+
+  late MasterPasswordProvider masterPasswordProvider;
+
   @override
   Widget build(BuildContext context) {
+    masterPasswordProvider =
+        Provider.of<MasterPasswordProvider>(context, listen: false);
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -45,64 +55,142 @@ class _NewEntryScreenState extends State<NewEntryScreen> {
                 child: Column(children: [
                   SizedBox(height: SZ.V * 7.5),
                   TextFormField(
-                    keyboardType: TextInputType.name,
+                    keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      labelText: 'Full Name',
+                      labelText: 'App Name',
                       labelStyle: Theme.of(context).textTheme.caption,
-                      hintText: 'Enter your full name',
+                      hintText: 'Enter the app name or account name',
+                      hintStyle: Theme.of(context).textTheme.bodyText2,
                     ),
                     style: Theme.of(context).textTheme.headline6,
-                    onChanged: (value) {},
                     validator: (value) {
-                      if (value!.isEmpty || value.length < 2)
-                        return 'Please enter your Full Name';
+                      if (value!.isEmpty || value.length < 2) {
+                        return 'Please enter a valid app name or account name';
+                      }
                       return null;
                     },
-                    onSaved: (value) {
-                      _userName = value!.trim();
-                    },
+                    controller: _titleController,
                   ),
                   SizedBox(height: SZ.V * 1.0),
                   TextFormField(
-                    keyboardType: TextInputType.emailAddress,
+                    keyboardType: TextInputType.text,
                     decoration: InputDecoration(
-                      labelText: 'Email Address',
+                      labelText: 'Username',
                       labelStyle: Theme.of(context).textTheme.caption,
-                      hintText: 'Enter your email address',
+                      hintText: 'Enter the username',
+                      hintStyle: Theme.of(context).textTheme.bodyText2,
+                    ),
+                    style: Theme.of(context).textTheme.headline6,
+                    validator: (value) {
+                      if (value!.isEmpty || value.length < 2) {
+                        return 'Please enter a valid username';
+                      }
+                      return null;
+                    },
+                    controller: _usernameController,
+                  ),
+                  SizedBox(height: SZ.V * 1.0),
+                  TextFormField(
+                    keyboardType: TextInputType.text,
+                    decoration: InputDecoration(
+                      labelText: 'Url',
+                      labelStyle: Theme.of(context).textTheme.caption,
+                      hintText: 'Enter the url of app',
+                      hintStyle: Theme.of(context).textTheme.bodyText2,
+                    ),
+                    style: Theme.of(context).textTheme.headline6,
+                    validator: (value) {
+                      if (value!.isEmpty || value.length < 2) {
+                        return 'Please enter a valid url';
+                      }
+                      return null;
+                    },
+                    controller: _urlController,
+                  ),
+                  TextFormField(
+                    keyboardType: TextInputType.visiblePassword,
+                    obscureText: _passwordVisible,
+                    decoration: InputDecoration(
+                      labelText: 'Password',
+                      labelStyle: Theme.of(context).textTheme.caption,
+                      hintText: 'Enter a secure password',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(
+                            left: SZ.H * 3.0, bottom: SZ.V * 0.7),
+                        child: IconButton(
+                          onPressed: () => {
+                            setState(
+                                () => {_passwordVisible = !_passwordVisible})
+                          },
+                          icon: Icon(
+                            Icons.remove_red_eye_outlined,
+                            color: _passwordVisible
+                                ? Colors.black26
+                                : Colors.black54,
+                          ),
+                        ),
+                      ),
+                      suffixIconConstraints: BoxConstraints(
+                          minWidth: SZ.H * 5.0, maxHeight: SZ.V * 5.0),
                     ),
                     style: Theme.of(context).textTheme.headline6,
                     onChanged: (value) {},
                     validator: (value) {
                       if (value!.isEmpty) {
-                        return 'Email Address cannot be blank';
-                      }
-                      if (!value.contains('@')) {
-                        return 'Please enter a valid email address';
+                        return 'Password cannot be empty';
+                      } else if (value.length < 10) {
+                        return 'Password must be atleast 10 characters long';
+                      } else if (value.length > 20) {
+                        return 'Password must be less than 20 characters long';
+                      } else if (value.contains(' ')) {
+                        return 'Password cannot contain spaces';
+                      } else if (value.contains('\n')) {
+                        return 'Password cannot contain new lines';
                       }
                       return null;
                     },
-                    onSaved: (value) {
-                      _userEmail = value!.trim();
-                    },
+                    controller: _passwordController,
                   ),
                   SizedBox(height: SZ.V * 1.0),
                   TextFormField(
-                    keyboardType: TextInputType.number,
+                    keyboardType: TextInputType.visiblePassword,
+                    obscureText: _passwordConfirmVisible,
                     decoration: InputDecoration(
-                      labelText: 'Age',
+                      labelText: 'Confirm Password',
                       labelStyle: Theme.of(context).textTheme.caption,
-                      hintText: 'Enter your age',
+                      hintText: 'Re-enter the same password',
+                      suffixIcon: Padding(
+                        padding: EdgeInsets.only(
+                            left: SZ.H * 3.0, bottom: SZ.V * 0.7),
+                        child: IconButton(
+                          onPressed: () => {
+                            setState(() => {
+                                  _passwordConfirmVisible =
+                                      !_passwordConfirmVisible
+                                })
+                          },
+                          icon: Icon(
+                            Icons.remove_red_eye_outlined,
+                            color: _passwordConfirmVisible
+                                ? Colors.black26
+                                : Colors.black54,
+                          ),
+                        ),
+                      ),
+                      suffixIconConstraints: BoxConstraints(
+                          minWidth: SZ.H * 5.0, maxHeight: SZ.V * 5.0),
                     ),
                     style: Theme.of(context).textTheme.headline6,
                     onChanged: (value) {},
                     validator: (value) {
-                      if (value!.isEmpty) return 'Age cannot be empty';
+                      if (value!.isEmpty) {
+                        return 'Password cannot be empty';
+                      } else if (value != _passwordController.text) {
+                        return 'Passwords do not match';
+                      }
                       return null;
                     },
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ], // Only numbers can be entered
-                    controller: _ageController,
+                    controller: _passwordConfirmController,
                   ),
                   SizedBox(height: SZ.V * 15.0),
                   _isLoading
@@ -110,7 +198,7 @@ class _NewEntryScreenState extends State<NewEntryScreen> {
                       : Padding(
                           padding: EdgeInsets.only(bottom: SZ.V * 5),
                           child: ElevatedButton(
-                            onPressed: () {},
+                            onPressed: () => _trySubmit(),
                             style: ElevatedButton.styleFrom(
                               primary: Style.PRIMARY_COLOR,
                               shape: RoundedRectangleBorder(
@@ -132,5 +220,42 @@ class _NewEntryScreenState extends State<NewEntryScreen> {
         ),
       ),
     );
+  }
+
+  Future<void> _trySubmit() async {
+    final isValid = _formKey.currentState!.validate();
+    FocusScope.of(context).unfocus();
+
+    if (isValid) {
+      setState(() {
+        _isLoading = true;
+      });
+
+      _formKey.currentState!.save();
+
+      String _title = _titleController.text;
+      String _username = _usernameController.text;
+      String _url = _urlController.text;
+      String _password = _passwordController.text;
+
+      print('Begin storing new password');
+
+      if (await masterPasswordProvider.storePassword(
+          _title, _username, _url, _password)) {
+        setState(() {
+          _isLoading = false;
+        });
+        Navigator.of(context).pop();
+      } else {
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error storing password'),
+          ),
+        );
+      }
+    }
   }
 }

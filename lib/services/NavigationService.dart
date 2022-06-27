@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart' as fireauth;
 import 'package:pwdmgr/main.dart';
+import 'package:pwdmgr/providers/MasterPasswordProvider.dart';
 import 'package:pwdmgr/providers/UserProvider.dart';
 
 class NavigationService {
@@ -46,8 +47,17 @@ class NavigationService {
           (Route<dynamic> route) => false,
         );
       } else {
-        return navigatorKey.currentState?.pushNamedAndRemoveUntil(
-            '/dashboard', (Route<dynamic> route) => false);
+        if (await getIt<MasterPasswordProvider>().getKey()) {
+          print(
+              "Key is present in master password provider according to nav service");
+          return navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              '/dashboard', (Route<dynamic> route) => false);
+        } else {
+          print(
+              "Key is NOT present in master password provider according to nav service");
+          return navigatorKey.currentState?.pushNamedAndRemoveUntil(
+              '/masterPassword', (Route<dynamic> route) => false);
+        }
       }
     }
   }

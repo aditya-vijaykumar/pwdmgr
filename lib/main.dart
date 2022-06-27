@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:pwdmgr/providers/MasterPasswordProvider.dart';
 import 'package:pwdmgr/providers/UserProvider.dart';
 import 'package:pwdmgr/routes.dart';
 import 'package:pwdmgr/screens/SplashScreen.dart';
@@ -20,12 +21,14 @@ void main() async {
   setupLocator();
   runApp(MultiProvider(providers: [
     ChangeNotifierProvider(create: (_) => UserProvider()),
+    ChangeNotifierProvider(create: (_) => MasterPasswordProvider()),
   ], child: MyApp()));
 }
 
 void setupLocator() {
   getIt.registerLazySingleton(() => NavigationService());
   getIt.registerLazySingleton(() => UserProvider());
+  getIt.registerLazySingleton(() => MasterPasswordProvider());
 }
 
 class MyApp extends StatefulWidget {

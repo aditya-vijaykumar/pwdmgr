@@ -4,6 +4,7 @@ import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:provider/provider.dart';
 import 'package:pwdmgr/main.dart';
+import 'package:pwdmgr/providers/MasterPasswordProvider.dart';
 import 'package:pwdmgr/providers/UserProvider.dart';
 import 'package:pwdmgr/services/NavigationService.dart';
 import 'package:pwdmgr/utils/SizeConfig.dart';
@@ -22,6 +23,8 @@ class RegisterForm extends StatefulWidget {
 class _RegisterFormState extends State<RegisterForm> {
   final _formKey = GlobalKey<FormState>();
   final _ageController = TextEditingController();
+  final _masterPasswordController = TextEditingController();
+  final _masterPasswordConfirmController = TextEditingController();
   final fireauth.FirebaseAuth auth = fireauth.FirebaseAuth.instance;
   bool _isLoading = false;
 
@@ -29,6 +32,12 @@ class _RegisterFormState extends State<RegisterForm> {
   String _userName = '';
   late int _userAge;
   late UserProvider userProvider;
+  late MasterPasswordProvider masterPasswordProvider;
+
+  String _masterPassword = '';
+  bool _masterPasswordVisble = true;
+
+  bool _masterPasswordConfirmVisble = true;
 
   Future<void> _trySubmit() async {
     final isValid = _formKey.currentState!.validate();
@@ -42,6 +51,7 @@ class _RegisterFormState extends State<RegisterForm> {
       _formKey.currentState!.save();
 
       String age = _ageController.text;
+      _masterPassword = _masterPasswordController.text;
       String? _mobileNumber = auth.currentUser!.phoneNumber;
       _userAge = int.parse(age);
 
@@ -55,8 +65,9 @@ class _RegisterFormState extends State<RegisterForm> {
         'email': _userEmail,
         'age': _userAge,
         'mobile_number': _mobileNumber
-      }).whenComplete(() {
+      }).whenComplete(() async {
         print('done');
+        masterPasswordProvider.newAccountPassword(_masterPassword);
         userProvider.setUserDetails(_userName, _userEmail, _userAge,
             auth.currentUser!.uid, _mobileNumber);
       });
@@ -72,6 +83,8 @@ class _RegisterFormState extends State<RegisterForm> {
   @override
   Widget build(BuildContext context) {
     userProvider = Provider.of<UserProvider>(context, listen: false);
+    masterPasswordProvider =
+        Provider.of<MasterPasswordProvider>(context, listen: false);
 
     SZ.init(context);
     return SafeArea(
@@ -93,8 +106,9 @@ class _RegisterFormState extends State<RegisterForm> {
                   style: Theme.of(context).textTheme.headline6,
                   onChanged: (value) {},
                   validator: (value) {
-                    if (value!.isEmpty || value.length < 2)
+                    if (value!.isEmpty || value.length < 2) {
                       return 'Please enter your Full Name';
+                    }
                     return null;
                   },
                   onSaved: (value) {
@@ -143,6 +157,92 @@ class _RegisterFormState extends State<RegisterForm> {
                   ], // Only numbers can be entered
                   controller: _ageController,
                 ),
+                SizedBox(height: SZ.V * 1.0),
+                TextFormField(
+                  keyboardType: TextInputType.visiblePassword,
+                  obscureText: _masterPasswordVisble,
+                  decoration: InputDecoration(
+                    labelText: 'Master Password',
+                    labelStyle: Theme.of(context).textTheme.caption,
+                    hintText: 'Enter a secure master password',
+                    suffixIcon: Padding(
+                      padding:
+                          EdgeInsets.only(left: SZ.H * 3.0, bottom: SZ.V * 0.7),
+                      child: IconButton(
+                        onPressed: () => {
+                          setState(() =>
+                              {_masterPasswordVisble = !_masterPasswordVisble})
+                        },
+                        icon: Icon(
+                          Icons.remove_red_eye_outlined,
+                          color: _masterPasswordVisble
+                              ? Colors.black26
+                              : Colors.black54,
+                        ),
+                      ),
+                    ),
+                    suffixIconConstraints: BoxConstraints(
+                        minWidth: SZ.H * 5.0, maxHeight: SZ.V * 5.0),
+                  ),
+                  style: Theme.of(context).textTheme.headline6,
+                  onChanged: (value) {},
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Password cannot be empty';
+                    } else if (value.length < 10) {
+                      return 'Password must be atleast 10 characters long';
+                    } else if (value.length > 20) {
+                      return 'Password must be less than 20 characters long';
+                    } else if (value.contains(' ')) {
+                      return 'Password cannot contain spaces';
+                    } else if (value.contains('\n')) {
+                      return 'Password cannot contain new lines';
+                    }
+                    return null;
+                  },
+                  controller: _masterPasswordController,
+                ),
+                SizedBox(height: SZ.V * 1.0),
+                TextFormField(
+                  keyboardType: TextInputType.visiblePassword,
+                  obscureText: _masterPasswordConfirmVisble,
+                  decoration: InputDecoration(
+                    labelText: 'Confirm Master Password',
+                    labelStyle: Theme.of(context).textTheme.caption,
+                    hintText: 'Re-enter the same master password',
+                    suffixIcon: Padding(
+                      padding:
+                          EdgeInsets.only(left: SZ.H * 3.0, bottom: SZ.V * 0.7),
+                      child: IconButton(
+                        onPressed: () => {
+                          setState(() => {
+                                _masterPasswordConfirmVisble =
+                                    !_masterPasswordConfirmVisble
+                              })
+                        },
+                        icon: Icon(
+                          Icons.remove_red_eye_outlined,
+                          color: _masterPasswordConfirmVisble
+                              ? Colors.black26
+                              : Colors.black54,
+                        ),
+                      ),
+                    ),
+                    suffixIconConstraints: BoxConstraints(
+                        minWidth: SZ.H * 5.0, maxHeight: SZ.V * 5.0),
+                  ),
+                  style: Theme.of(context).textTheme.headline6,
+                  onChanged: (value) {},
+                  validator: (value) {
+                    if (value!.isEmpty) {
+                      return 'Password cannot be empty';
+                    } else if (value != _masterPasswordController.text) {
+                      return 'Passwords do not match';
+                    }
+                    return null;
+                  },
+                  controller: _masterPasswordConfirmController,
+                ),
                 SizedBox(height: SZ.V * 15.0),
                 _isLoading
                     ? CircularProgressIndicator()
@@ -150,7 +250,7 @@ class _RegisterFormState extends State<RegisterForm> {
                         padding: EdgeInsets.only(bottom: SZ.V * 5),
                         child: ElevatedButton(
                           child: Text(
-                            'Register',
+                            'Create Account',
                             style: Theme.of(context).textTheme.button,
                           ),
                           onPressed: _trySubmit,
@@ -160,7 +260,7 @@ class _RegisterFormState extends State<RegisterForm> {
                                 borderRadius:
                                     BorderRadius.circular(SZ.V * 1.2)),
                             padding: EdgeInsets.symmetric(
-                                vertical: SZ.V * 1.8, horizontal: SZ.H * 27),
+                                vertical: SZ.V * 1.8, horizontal: SZ.H * 20),
                           ),
                         ),
                       )

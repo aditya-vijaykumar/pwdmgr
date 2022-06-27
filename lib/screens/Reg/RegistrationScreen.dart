@@ -9,7 +9,7 @@ class RegisterScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Registration',
+          'Create Account',
           style: Theme.of(context)
               .textTheme
               .headline6!

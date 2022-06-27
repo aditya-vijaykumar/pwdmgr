@@ -21,11 +21,11 @@ class CutstomNavBar extends StatelessWidget {
           children: [
             NavItem(
                 press: () => onSelectTab(NavBar.vault),
-                iconEnum: Icons.dashboard,
+                iconEnum: Icons.lock_person_outlined,
                 isActive: currentTab == NavBar.vault ? true : false),
             NavItem(
                 press: () => onSelectTab(NavBar.settings),
-                iconEnum: Icons.dashboard_customize,
+                iconEnum: Icons.settings,
                 isActive: currentTab == NavBar.settings ? true : false),
           ],
         ),
