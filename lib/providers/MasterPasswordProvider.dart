@@ -146,11 +146,12 @@ class MasterPasswordProvider with ChangeNotifier {
     return passwords;
   }
 
-  void getAllPasswords() async {
+  Future<List<PasswordEntryModel>> getAllPasswords() async {
     if (!_keyPairFound) {
       await getKey();
     }
     passwordEntries = await _getAllPasswords();
+    return passwordEntries;
   }
 
   Future<bool> storePassword(
@@ -183,7 +184,8 @@ class MasterPasswordProvider with ChangeNotifier {
     return true;
   }
 
-  void deletePassword(String id) async {
+  Future<bool> deletePassword(String id) async {
+    bool successFlag = false;
     await FirebaseFirestore.instance
         .collection('passwords')
         .doc(id)
@@ -191,18 +193,22 @@ class MasterPasswordProvider with ChangeNotifier {
         .then((value) => {
               passwordEntries.removeWhere((element) => element.id == id),
               notifyListeners(),
+              successFlag = true
             })
         .catchError((onError) => {
               print(onError),
               notifyListeners(),
             });
+    return successFlag;
   }
 
-  void updatePassword(String id, String title, String username, String url,
-      String password, String ivb64) async {
+  Future<bool> updatePassword(String id, String title, String username,
+      String url, String password, String ivb64) async {
     if (!_keyPairFound) {
       await getKey();
     }
+    bool successFlag = false;
+
     final iv = enc.IV.fromBase64(ivb64);
     final encrypter = enc.Encrypter(enc.AES(_masterKey));
     final encrypted = encrypter.encrypt(password, iv: iv);
@@ -211,18 +217,27 @@ class MasterPasswordProvider with ChangeNotifier {
       'username': username,
       'url': url,
       'password': encrypted.base64,
+    }).then((value) {
+      passwordEntries.removeWhere((element) => element.id == id);
+      PasswordEntryModel pwdModel = PasswordEntryModel(
+        id: id,
+        title: title,
+        username: username,
+        url: url,
+        password: password,
+        encryptedPassword: encrypted.base64,
+        iv: iv.base64,
+      );
+      passwordEntries.add(pwdModel);
+      successFlag = true;
+      notifyListeners();
+    }).catchError((onError) {
+      print(onError.toString());
     });
-    passwordEntries.removeWhere((element) => element.id == id);
-    PasswordEntryModel pwdModel = PasswordEntryModel(
-      id: id,
-      title: title,
-      username: username,
-      url: url,
-      password: password,
-      encryptedPassword: encrypted.base64,
-      iv: iv.base64,
-    );
-    passwordEntries.add(pwdModel);
-    notifyListeners();
+    return successFlag;
+  }
+
+  void clearTheStore() async {
+    await _storage.delete(key: _PWDMASTERKEY);
   }
 }

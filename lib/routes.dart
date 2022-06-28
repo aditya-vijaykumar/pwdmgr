@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:pwdmgr/screens/AboutAppScreen.dart';
 import 'package:pwdmgr/screens/Dashboard/DashboardScreen.dart';
+import 'package:pwdmgr/screens/EditEntryScreen.dart';
 import 'package:pwdmgr/screens/Login/LoginScreen.dart';
 import 'package:pwdmgr/screens/NewEntryScreen.dart';
 import 'package:pwdmgr/screens/Reg/RegistrationScreen.dart';
+import 'package:pwdmgr/screens/ShowProfileScreen.dart';
 import 'package:pwdmgr/screens/SplashScreen.dart';
 import 'package:pwdmgr/utils/SizeConfig.dart';
 import 'package:pwdmgr/utils/Styles.dart';
@@ -52,6 +55,23 @@ Route routerMethod(settings) {
         transitionsBuilder: (_, anim, __, child) => FadeTransition(
           opacity: anim,
           child: child,
+        ),
+      );
+    case ShowProfileScreen.routeName:
+      return PageRouteBuilder(
+        pageBuilder: (_, __, ___) =>
+            _loadRoutePage(_, const ShowProfileScreen()),
+        transitionsBuilder: (_, anim, __, chilld) => FadeTransition(
+          opacity: anim,
+          child: chilld,
+        ),
+      );
+    case AboutAppScreen.routeName:
+      return PageRouteBuilder(
+        pageBuilder: (_, __, ___) => _loadRoutePage(_, const AboutAppScreen()),
+        transitionsBuilder: (_, anim, __, chilld) => FadeTransition(
+          opacity: anim,
+          child: chilld,
         ),
       );
     default:

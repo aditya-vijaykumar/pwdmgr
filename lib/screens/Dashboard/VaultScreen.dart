@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:provider/provider.dart';
+import 'package:pwdmgr/main.dart';
 import 'package:pwdmgr/models/PasswordEntryModel.dart';
 import 'package:pwdmgr/providers/MasterPasswordProvider.dart';
 import 'package:pwdmgr/screens/Dashboard/components/SearchField.dart';
+import 'package:pwdmgr/screens/EditEntryScreen.dart';
 import 'package:pwdmgr/utils/SizeConfig.dart';
 
 class VaultScreen extends StatelessWidget {
@@ -15,41 +18,45 @@ class VaultScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    masterPasswordProvider = Provider.of<MasterPasswordProvider>(context);
-    masterPasswordProvider.getAllPasswords();
+    final List<PasswordEntryModel> passwordEntries =
+        getIt<MasterPasswordProvider>().passwordEntries;
 
     SZ.init(context);
-    return ListView(
-      children: [
-        SizedBox(height: SZ.V * 5),
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: SZ.H * 5.0),
-          child: SearchField(
-            hintText: 'Search entries...',
-            press: () {},
-            search: _search,
-          ),
-        ),
-        SizedBox(height: SZ.V * 5),
+    return SingleChildScrollView(
+      child: FutureBuilder(
+        future: getIt<MasterPasswordProvider>().getAllPasswords(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData && snapshot.data != null) {
+            print("snapshot.data");
+            final List<PasswordEntryModel> pwdList =
+                snapshot.data! as List<PasswordEntryModel>;
 
-        PasswordEntryItem(
-            pwd: PasswordEntryModel(
-          id: "1",
-          title: "Test App",
-          username: "@Test01",
-          password: "TestNOHACK",
-          url: "Test.com",
-          encryptedPassword: "0xTest",
-          iv: "0xTest",
-        )),
-
-        ...masterPasswordProvider.passwordEntries
-            .map((e) => PasswordEntryItem(pwd: e))
-            .toList(),
-
-        SizedBox(height: SZ.V * 2),
-        // Login Text
-      ],
+            return Column(
+              children: [
+                SizedBox(height: SZ.V * 5),
+                // Padding(
+                //   padding: EdgeInsets.symmetric(horizontal: SZ.H * 5.0),
+                //   child: SearchField(
+                //     hintText: 'Search entries...',
+                //     press: () {},
+                //     search: _search,
+                //   ),
+                // ),
+                SizedBox(height: SZ.V * 5),
+                ...List.generate(
+                  pwdList.length,
+                  (index) => PasswordEntryItem(
+                    pwd: pwdList[index],
+                  ),
+                )
+              ],
+            );
+          } else {
+            return const Center(
+                child: Text("No entries exist, please add one."));
+          }
+        },
+      ),
     );
   }
 }
@@ -127,11 +134,20 @@ class PasswordEntryItem extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
+                leading: const Icon(Icons.text_format_rounded),
+                title: const Text('View Details'),
+                onTap: () {
+                  Navigator.pop(context);
+                  showAllDetails(
+                      pwd.title, pwd.username, pwd.url, pwd.password, context);
+                },
+              ),
+              ListTile(
                 leading: const Icon(Icons.remove_red_eye_outlined),
                 title: const Text('View Password'),
                 onTap: () {
                   Navigator.pop(context);
-                  showDialogWithData(context);
+                  showAndCopyValue(pwd.password, context);
                 },
               ),
               ListTile(
@@ -139,6 +155,7 @@ class PasswordEntryItem extends StatelessWidget {
                 title: const Text('View Encrypted Data'),
                 onTap: () {
                   Navigator.pop(context);
+                  showAndCopyValue(pwd.encryptedPassword, context);
                 },
               ),
               ListTile(
@@ -146,6 +163,12 @@ class PasswordEntryItem extends StatelessWidget {
                 title: const Text('Edit Details'),
                 onTap: () {
                   Navigator.pop(context);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => EditEntryScreen(pwd: pwd),
+                    ),
+                  );
                 },
               ),
               ListTile(
@@ -153,6 +176,7 @@ class PasswordEntryItem extends StatelessWidget {
                 title: const Text('Delete Entry'),
                 onTap: () {
                   Navigator.pop(context);
+                  confirmDeleteEntry(pwd.id, pwd.title, context);
                 },
               ),
             ],
@@ -160,13 +184,130 @@ class PasswordEntryItem extends StatelessWidget {
         });
   }
 
-  void showDialogWithData(BuildContext context) {
+  void showAndCopyValue(String value, BuildContext context) {
+    TextEditingController _pController = new TextEditingController()
+      ..text = value;
+
+    void onPress() async {
+      await Clipboard.setData(ClipboardData(text: _pController.text));
+      scaffoldMessengerKey.currentState!.showSnackBar(const SnackBar(
+        content: Text('Copied to clipboard'),
+      ));
+    }
+
+    Widget content = TextField(
+      readOnly: true,
+      controller: _pController,
+      decoration: InputDecoration(
+        icon: IconButton(
+          icon: const Icon(Icons.copy),
+          onPressed: () => onPress(),
+        ),
+      ),
+    );
+
+    showDialogWithData(context, "Show Password", onPress, content, "Copy");
+  }
+
+  void confirmDeleteEntry(String id, String title, BuildContext context) {
+    Future<void> onPress() async {
+      await getIt<MasterPasswordProvider>().deletePassword(id);
+      scaffoldMessengerKey.currentState!.showSnackBar(SnackBar(
+        content: Text('Successfully deleted pwd titled $title'),
+      ));
+    }
+
+    Widget content = Text(
+        'Are you sure you want to delete password entry with title $title');
+
+    showDialogWithData(context, "Delete Password", onPress, content, "Delete");
+  }
+
+  void showAllDetails(String title, String username, String url,
+      String password, BuildContext context) {
+    TextEditingController _pController = new TextEditingController()
+      ..text = password;
+
+    TextEditingController _urlController = new TextEditingController()
+      ..text = url;
+
+    TextEditingController _uController = new TextEditingController()
+      ..text = username;
+
+    Widget content = Container(
+      height: SZ.V * 30.0,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          TextField(
+            readOnly: true,
+            controller: _urlController,
+            decoration: InputDecoration(
+                icon: IconButton(
+                  icon: const Icon(Icons.copy),
+                  onPressed: () async {
+                    await Clipboard.setData(
+                        ClipboardData(text: _urlController.text));
+                    scaffoldMessengerKey.currentState!
+                        .showSnackBar(const SnackBar(
+                      content: Text('Url Copied to clipboard'),
+                    ));
+                  },
+                ),
+                labelText: "Url ",
+                labelStyle: Theme.of(context).textTheme.caption),
+          ),
+          TextField(
+            readOnly: true,
+            controller: _uController,
+            decoration: InputDecoration(
+                icon: IconButton(
+                  icon: const Icon(Icons.copy),
+                  onPressed: () async {
+                    await Clipboard.setData(
+                        ClipboardData(text: _uController.text));
+                    scaffoldMessengerKey.currentState!
+                        .showSnackBar(const SnackBar(
+                      content: Text('Username Copied to clipboard'),
+                    ));
+                  },
+                ),
+                labelText: "Username",
+                labelStyle: Theme.of(context).textTheme.caption),
+          ),
+          TextField(
+            readOnly: true,
+            controller: _pController,
+            decoration: InputDecoration(
+                icon: IconButton(
+                  icon: const Icon(Icons.copy),
+                  onPressed: () async {
+                    await Clipboard.setData(
+                        ClipboardData(text: _pController.text));
+                    scaffoldMessengerKey.currentState!
+                        .showSnackBar(const SnackBar(
+                      content: Text('Password Copied to clipboard'),
+                    ));
+                  },
+                ),
+                labelText: "Password",
+                labelStyle: Theme.of(context).textTheme.caption),
+          ),
+        ],
+      ),
+    );
+
+    showDialogWithData(context, title, () {}, content, "Ok");
+  }
+
+  void showDialogWithData(BuildContext context, String title,
+      VoidCallback onPress, Widget content, String cta) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Title'),
-          content: const Text('Content'),
+          title: Text(title),
+          content: content,
           actions: <Widget>[
             TextButton(
               child: const Text('Cancel'),
@@ -175,8 +316,9 @@ class PasswordEntryItem extends StatelessWidget {
               },
             ),
             TextButton(
-              child: const Text('Ok'),
+              child: Text(cta),
               onPressed: () {
+                onPress();
                 Navigator.of(context).pop();
               },
             ),

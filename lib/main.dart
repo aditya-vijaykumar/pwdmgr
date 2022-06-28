@@ -12,6 +12,8 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 
 GetIt getIt = GetIt.instance;
+GlobalKey<ScaffoldMessengerState> scaffoldMessengerKey =
+    GlobalKey<ScaffoldMessengerState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +53,7 @@ class _MyAppState extends State<MyApp> {
       onGenerateRoute: routerMethod,
       initialRoute: SplashScreen.routeName,
       color: Style.PRIMARY_COLOR,
+      scaffoldMessengerKey: scaffoldMessengerKey,
     );
   }
 }

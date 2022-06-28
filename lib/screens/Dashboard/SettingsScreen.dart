@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/src/foundation/key.dart';
 import 'package:flutter/src/widgets/framework.dart';
+import 'package:pwdmgr/main.dart';
+import 'package:pwdmgr/providers/MasterPasswordProvider.dart';
+import 'package:pwdmgr/screens/AboutAppScreen.dart';
+import 'package:pwdmgr/screens/ShowProfileScreen.dart';
+import 'package:pwdmgr/services/FirebaseAuthService.dart';
+import 'package:pwdmgr/services/NavigationService.dart';
 import 'package:pwdmgr/utils/SizeConfig.dart';
 
 class SettingsScreen extends StatelessWidget {
@@ -17,7 +23,8 @@ class SettingsScreen extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.person),
             title: const Text('Profile'),
-            onTap: () {},
+            onTap: () =>
+                Navigator.pushNamed(context, ShowProfileScreen.routeName),
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: SZ.H * 3, color: Colors.black),
           ),
@@ -27,7 +34,7 @@ class SettingsScreen extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('About'),
-            onTap: () {},
+            onTap: () => Navigator.pushNamed(context, AboutAppScreen.routeName),
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: SZ.H * 3, color: Colors.black),
           ),
@@ -37,7 +44,12 @@ class SettingsScreen extends StatelessWidget {
           child: ListTile(
             leading: const Icon(Icons.logout),
             title: const Text('Logout'),
-            onTap: () {},
+            onTap: () async {
+              getIt<MasterPasswordProvider>().clearTheStore();
+              await FirebaseAuthService.auth.signOut();
+              getIt<NavigationService>()
+                  .navigateToandClearWithUserSigninCheck();
+            },
             trailing: Icon(Icons.arrow_forward_ios_rounded,
                 size: SZ.H * 3, color: Colors.black),
           ),
