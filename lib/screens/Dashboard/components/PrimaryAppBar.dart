@@ -10,8 +10,8 @@ AppBar buildAppBar(BuildContext context) {
     primary: true,
     title: Container(
       margin: EdgeInsets.only(top: SZ.V * 1),
-      child: SvgPicture.asset(
-        'assets/svg/H_PWDMGR.svg',
+      child: Image.asset(
+        'assets/images/H_PWDMGR.png',
         width: SZ.H * 25.0,
       ),
     ),

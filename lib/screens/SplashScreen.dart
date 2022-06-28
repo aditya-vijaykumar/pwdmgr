@@ -8,7 +8,7 @@ import 'package:pwdmgr/utils/SizeConfig.dart';
 
 class SplashScreen extends StatefulWidget {
   static const String routeName = "/splash";
-  final String assetName = "assets/svg/PWD.svg";
+  final String assetName = "assets/images/PWD.png";
   const SplashScreen({Key? key}) : super(key: key);
 
   @override
@@ -52,7 +52,7 @@ class _SplashScreenState extends State<SplashScreen> {
               opacity: opacity,
               duration: const Duration(milliseconds: 400),
               curve: Curves.easeOut,
-              child: SvgPicture.asset(
+              child: Image.asset(
                 widget.assetName,
                 width: SZ.H * 40,
               ),

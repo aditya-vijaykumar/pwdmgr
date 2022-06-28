@@ -84,8 +84,13 @@ class PasswordEntryItem extends StatelessWidget {
                   width: SZ.H * 17.0,
                   height: SZ.H * 17.0,
                   decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(SZ.V * 1.5),
-                      color: Colors.black),
+                    borderRadius: BorderRadius.circular(SZ.V * 1.5),
+                    // color: Colors.black,
+                    image: const DecorationImage(
+                      image: AssetImage("assets/images/PWD.png"),
+                      fit: BoxFit.contain,
+                    ),
+                  ),
                 ),
               ),
               Flexible(

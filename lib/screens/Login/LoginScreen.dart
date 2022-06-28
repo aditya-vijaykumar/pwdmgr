@@ -19,8 +19,8 @@ class LoginScreen extends StatelessWidget {
           padding: EdgeInsets.symmetric(
               vertical: SZ.V * 15.0, horizontal: SZ.H * 20),
           child: Center(
-              child: SvgPicture.asset(
-            "assets/svg/PWDMGR.svg",
+              child: Image.asset(
+            "assets/images/PWDMGR.png",
             fit: BoxFit.cover,
             width: SZ.H * 30,
           )),

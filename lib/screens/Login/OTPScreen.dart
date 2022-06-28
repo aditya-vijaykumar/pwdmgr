@@ -30,7 +30,7 @@ class _OTPScreenState extends State<OTPScreen> {
   bool codeSent = false;
   bool codeResent = false;
 
-  final String assetName = "assets/svg/PWDMGR.svg";
+  final String assetName = "assets/images/PWDMGR.png";
 
   void initState() {
     super.initState();
@@ -53,7 +53,7 @@ class _OTPScreenState extends State<OTPScreen> {
                 padding: EdgeInsets.symmetric(
                     vertical: SZ.V * 15.0, horizontal: SZ.H * 20),
                 child: Center(
-                    child: SvgPicture.asset(
+                    child: Image.asset(
                   assetName,
                   fit: BoxFit.cover,
                   width: SZ.H * 30,
